@@ -1,2 +1,16 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+<script lang="ts">
+	import type { PageData } from './$types';
+
+	export let data: PageData;
+</script>
+
+{#each data.courses as course}
+	<div>
+		<p>{course.id}</p>
+		<h2>{course.name}</h2>
+		<p>{course.location}</p>
+		<p>{course.par}</p>
+		<p>{course.rating}</p>
+		<p>{course.slope}</p>
+	</div>
+{/each}
