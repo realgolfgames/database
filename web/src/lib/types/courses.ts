@@ -1,4 +1,4 @@
-import { Tees } from "./tees";
+import type { Tees } from "./tees";
 
 export type courses = {
     id: string;

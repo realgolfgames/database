@@ -5,12 +5,9 @@
 </script>
 
 {#each data.courses as course}
-	<div>
-		<p>{course.id}</p>
+	<div class="course">
 		<h2>{course.name}</h2>
 		<p>{course.location}</p>
-		<p>{course.par}</p>
-		<p>{course.rating}</p>
-		<p>{course.slope}</p>
+		<p>Par: {course.total_par}</p>
 	</div>
 {/each}
