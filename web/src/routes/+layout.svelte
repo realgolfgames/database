@@ -1,6 +1,9 @@
 <script lang="ts">
+	import Nav from '$lib/components/Nav.svelte';
 	import '$lib/scss/app.scss';
 </script>
+
+<Nav></Nav>
 
 <main>
 	<slot />
@@ -10,9 +13,9 @@
 	main {
 		max-width: 40rem;
 		margin: 0 auto;
-        padding-inline: 1rem;
+		padding-inline: 1rem;
 
-        @media screen and (max-width: 767px) {
+		@media screen and (max-width: 767px) {
 			margin-bottom: 20px;
 		}
 	}
