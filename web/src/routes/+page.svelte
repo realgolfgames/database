@@ -6,15 +6,24 @@
 	export let data: PageData;
 
 	onMount(() => {
+		const formatBytes = (bytes: number, decimals = 2) => {
+			if (bytes === 0) return '0 Bytes';
+			const k = 1024;
+			const dm = decimals < 0 ? 0 : decimals;
+			const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+			const i = Math.floor(Math.log(bytes) / Math.log(k));
+			return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+		};
+
 		const JSONToFile = (obj: object, filename: string) => {
-			const blob = new Blob([JSON.stringify(obj, null, 2)], {
-				type: 'application/json'
-			});
+			const jsonString = JSON.stringify(obj, null, 2);
+			const blob = new Blob([jsonString], { type: 'application/json' });
 			const url = URL.createObjectURL(blob);
+			const fileSize = formatBytes(blob.size);
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = `${filename}.json`;
-			a.textContent = 'Download Courses Data as JSON';
+			a.textContent = `Download Courses Data as JSON (${fileSize})`;
 			a.className = 'download-link';
 
 			// Append the link to the download container
@@ -26,14 +35,16 @@
 
 		const JSONToZip = async (obj: object, filename: string) => {
 			const zip = new JSZip();
-			zip.file(`${filename}.json`, JSON.stringify(obj, null, 2));
+			const jsonString = JSON.stringify(obj, null, 2);
+			zip.file(`${filename}.json`, jsonString);
 
 			const content = await zip.generateAsync({ type: 'blob' });
 			const url = URL.createObjectURL(content);
+			const fileSize = formatBytes(content.size);
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = `${filename}.zip`;
-			a.textContent = 'Download Courses Data as ZIP';
+			a.textContent = `Download Courses Data as ZIP (${fileSize})`;
 			a.className = 'download-link';
 
 			// Append the link to the download container
@@ -66,10 +77,6 @@
 </div>
 
 <style lang="scss">
-	p {
-		margin-bottom: 0 !important;
-	}
-
 	.download {
 		margin-top: 2rem;
 		display: flex;
