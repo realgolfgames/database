@@ -38,7 +38,12 @@
 			const jsonString = JSON.stringify(obj, null, 2);
 			zip.file(`${filename}.json`, jsonString);
 
-			const content = await zip.generateAsync({ type: 'blob' });
+			// Generate the zip file with compression
+			const content = await zip.generateAsync({
+				type: 'blob',
+				compression: 'DEFLATE',
+				compressionOptions: { level: 9 }
+			});
 			const url = URL.createObjectURL(content);
 			const fileSize = formatBytes(content.size);
 			const a = document.createElement('a');
