@@ -1,16 +1,23 @@
-/**
- * Connects to the Course MongoDB database using the provided connection URI.
- * @returns A Promise that resolves to a Mongoose connection object.
- */
-import { SECRET_MONGODB_COURSEDB_CONNECTION } from '$env/static/private';
+import { SECRET_MONGODB_CONNECTION } from '$env/static/private';
 import mongoose from 'mongoose';
 
-const database_URI = SECRET_MONGODB_COURSEDB_CONNECTION;
+const database_URI = SECRET_MONGODB_CONNECTION;
 
+const connection_options = {
+	maxIdleTimeMS: 60000,
+	maxPoolSize: 300
+};
+
+/**
+ * Connects to the MongoDB database using the provided connection URI.
+ * @returns A Promise that resolves to a Mongoose Connection object.
+ */
 export async function connect_to_db() {
 	try {
-		return mongoose.connect(database_URI);
+		if (!database_URI) throw new Error('No database URI provided.');
+		return mongoose.connect(database_URI, connection_options);
 	} catch (err) {
+		console.log('Could not connect to the database.');
 		console.log(err);
 	}
 }
