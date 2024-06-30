@@ -15,7 +15,7 @@
 			return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 		};
 
-		const JSONToFile = (obj: object, filename: string) => {
+		const JSONToFile = (obj: object, filename: string, data_type: string) => {
 			const jsonString = JSON.stringify(obj, null, 2);
 			const blob = new Blob([jsonString], { type: 'application/json' });
 			const url = URL.createObjectURL(blob);
@@ -23,7 +23,7 @@
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = `${filename}.json`;
-			a.textContent = `Download Courses Data as JSON (${fileSize})`;
+			a.textContent = `Download ${data_type} Data as JSON (${fileSize})`;
 			a.className = 'download-link';
 
 			// Append the link to the download container
@@ -33,7 +33,7 @@
 			}
 		};
 
-		const JSONToZip = async (obj: object, filename: string) => {
+		const JSONToZip = async (obj: object, filename: string, data_type: string) => {
 			const zip = new JSZip();
 			const jsonString = JSON.stringify(obj, null, 2);
 			zip.file(`${filename}.json`, jsonString);
@@ -49,7 +49,7 @@
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = `${filename}.zip`;
-			a.textContent = `Download Courses Data as ZIP (${fileSize})`;
+			a.textContent = `Download ${data_type} Data as ZIP (${fileSize})`;
 			a.className = 'download-link';
 
 			// Append the link to the download container
@@ -59,8 +59,9 @@
 			}
 		};
 
-		JSONToFile(data.courses, 'courses');
-		JSONToZip(data.courses, 'courses');
+		JSONToZip(data.courses, 'courses', 'Golf Course');
+		JSONToZip(data.games, 'games', 'Games');
+		JSONToZip(data.quizles, 'quizles', 'Quizles');
 	});
 </script>
 
