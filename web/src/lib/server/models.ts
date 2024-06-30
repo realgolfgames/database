@@ -1,6 +1,3 @@
-/**
- * Represents the schema for a golf course in the database.
- */
 import mongoose from 'mongoose';
 
 const Course_Schema = new mongoose.Schema({
@@ -46,7 +43,88 @@ const Course_Schema = new mongoose.Schema({
 	]
 });
 
+const Game_Schema = new mongoose.Schema({
+	id: { type: String },
+	type: { type: String },
+	owner: { type: String },
+	site: { type: String },
+	name: { type: String },
+	teams: { type: String },
+	date: { type: String },
+	data: { type: String },
+	is_over: { type: Boolean, default: false }
+});
+
+const Quizle_Schema = new mongoose.Schema({
+	chapter: {
+		de: { type: String },
+		en: { type: String },
+		es: { type: String },
+		fr: { type: String },
+		it: { type: String },
+		pt: { type: String }
+	},
+	sections: [
+		{
+			rule: {
+				de: { type: String },
+				en: { type: String },
+				es: { type: String },
+				fr: { type: String },
+				it: { type: String },
+				pt: { type: String }
+			},
+			questions: [
+				{
+					question: {
+						de: { type: String },
+						en: { type: String },
+						es: { type: String },
+						fr: { type: String },
+						it: { type: String },
+						pt: { type: String }
+					},
+					options: [
+						{
+							letter: { type: String },
+							text: {
+								de: { type: String },
+								en: { type: String },
+								es: { type: String },
+								fr: { type: String },
+								it: { type: String },
+								pt: { type: String }
+							}
+						}
+					],
+					correct_answer: {
+						letter: { type: String },
+						text: {
+							de: { type: String },
+							en: { type: String },
+							es: { type: String },
+							fr: { type: String },
+							it: { type: String },
+							pt: { type: String }
+						}
+					},
+					explanation: {
+						de: { type: String },
+						en: { type: String },
+						es: { type: String },
+						fr: { type: String },
+						it: { type: String },
+						pt: { type: String }
+					}
+				}
+			]
+		}
+	]
+});
+
 /**
  * The Mongoose model for the Course collection.
  */
 export const Course_Model = mongoose.model('Course', Course_Schema);
+export const Game_Model = mongoose.model('Game', Game_Schema);
+export const Quizle_Model = mongoose.model('Quizle', Quizle_Schema);
