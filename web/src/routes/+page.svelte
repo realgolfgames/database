@@ -59,19 +59,17 @@
 			}
 		};
 
-		JSONToZip(data.courses, 'courses', 'Golf Course');
-		JSONToZip(data.games, 'games', 'Games');
-		JSONToZip(data.quizles, 'quizles', 'Quizles');
+		JSONToFile(data.games, 'games', 'Games');
 	});
 </script>
 
 <svelte:head>
-	<title>Real Golf Open Database</title>
+	<title>RealGolf.Games Open Database</title>
 </svelte:head>
 
 <h1>Download Golf Course Data</h1>
 <p>
-	Real Golf Golf Courses are released under the <a
+	RealGolf.Games Games are released under the <a
 		href="https://tldrlegal.com/license/creative-commons-cc0-1.0-universal"
 		target="_blank"
 		rel="noopener noreferrer">Creative Commons CC0 license</a
