@@ -5,6 +5,34 @@
 
 	export let data: PageData;
 
+	function getMonthName(monthNumber: string) {
+		// Array of month names
+		const monthNames = [
+			'January',
+			'February',
+			'March',
+			'April',
+			'May',
+			'June',
+			'July',
+			'August',
+			'September',
+			'October',
+			'November',
+			'December'
+		];
+
+		// Convert the string to a number and adjust for 0-based indexing
+		const index = parseInt(monthNumber, 10) - 1;
+
+		// Check if the index is valid (0-11)
+		if (index >= 0 && index < monthNames.length) {
+			return monthNames[index];
+		} else {
+			return 'Invalid month'; // Handle invalid input
+		}
+	}
+
 	onMount(() => {
 		const formatBytes = (bytes: number, decimals = 2) => {
 			if (bytes === 0) return '0 Bytes';
@@ -13,24 +41,6 @@
 			const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
 			const i = Math.floor(Math.log(bytes) / Math.log(k));
 			return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-		};
-
-		const JSONToFile = (obj: object, filename: string, data_type: string) => {
-			const jsonString = JSON.stringify(obj, null, 2);
-			const blob = new Blob([jsonString], { type: 'application/json' });
-			const url = URL.createObjectURL(blob);
-			const fileSize = formatBytes(blob.size);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `${filename}.json`;
-			a.textContent = `Download ${data_type} Data as JSON (${fileSize})`;
-			a.className = 'download-link';
-
-			// Append the link to the download container
-			const downloadContainer = document.querySelector('.download');
-			if (downloadContainer) {
-				downloadContainer.appendChild(a);
-			}
 		};
 
 		const JSONToZip = async (obj: object, filename: string, data_type: string) => {
@@ -49,7 +59,7 @@
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = `${filename}.zip`;
-			a.textContent = `Download ${data_type} Data as ZIP (${fileSize})`;
+			a.innerHTML = `${data_type} ${fileSize} ${obj.length}`;
 			a.className = 'download-link';
 
 			// Append the link to the download container
@@ -59,7 +69,55 @@
 			}
 		};
 
-		JSONToFile(data.games, 'games', 'Games');
+		const organizeByDate = (games: any[]) => {
+			const organized: { [year: string]: { [month: string]: any[] } } = {};
+
+			games.forEach((game) => {
+				const date = new Date(game.date);
+				const year = date.getFullYear();
+				const month = date.getMonth() + 1; // getMonth() returns 0-based month, so add 1
+
+				if (!organized[year]) {
+					organized[year] = {};
+				}
+				if (!organized[year][month]) {
+					organized[year][month] = [];
+				}
+				organized[year][month].push(game);
+			});
+
+			// Sort games in each month from latest to oldest
+			for (const year in organized) {
+				for (const month in organized[year]) {
+					organized[year][month].sort(
+						(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+					);
+				}
+			}
+
+			return organized;
+		};
+
+		const downloadAll = async (organizedGames: any) => {
+			// Get years in descending order
+			const years = Object.keys(organizedGames).sort((a, b) => parseInt(b) - parseInt(a));
+
+			for (const year of years) {
+				const yearData = organizedGames[year];
+
+				// Get months in descending order
+				const months = Object.keys(yearData).sort((a, b) => parseInt(b) - parseInt(a));
+
+				for (const month of months) {
+					const monthData = yearData[month];
+					const filename = `${year}-${month}`;
+					await JSONToZip(monthData, filename, `${year} - ${getMonthName(month)}`);
+				}
+			}
+		};
+
+		const organizedGames = organizeByDate(data.games);
+		downloadAll(organizedGames);
 	});
 </script>
 
