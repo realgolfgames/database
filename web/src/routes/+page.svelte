@@ -5,33 +5,10 @@
 
 	export let data: PageData;
 
-	function getMonthName(monthNumber: string) {
-		// Array of month names
-		const monthNames = [
-			'January',
-			'February',
-			'March',
-			'April',
-			'May',
-			'June',
-			'July',
-			'August',
-			'September',
-			'October',
-			'November',
-			'December'
-		];
-
-		// Convert the string to a number and adjust for 0-based indexing
-		const index = parseInt(monthNumber, 10) - 1;
-
-		// Check if the index is valid (0-11)
-		if (index >= 0 && index < monthNames.length) {
-			return monthNames[index];
-		} else {
-			return 'Invalid month'; // Handle invalid input
-		}
-	}
+	let totalGames = 0; // To store the total number of games
+	let totalFiles = 0; // To store the total number of files
+	let totalSizeInBytes = 0; // To store the total size in bytes
+	let plainTextDownloadList = ''; // To store the plain text download list content
 
 	onMount(() => {
 		const formatBytes = (bytes: number, decimals = 2) => {
@@ -43,7 +20,25 @@
 			return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 		};
 
-		const JSONToZip = async (obj: object, filename: string, data_type: string) => {
+		const getMonthName = (monthNumber: number) => {
+			const monthNames = [
+				'January',
+				'February',
+				'March',
+				'April',
+				'May',
+				'June',
+				'July',
+				'August',
+				'September',
+				'October',
+				'November',
+				'December'
+			];
+			return monthNames[monthNumber - 1] || 'Invalid month';
+		};
+
+		const JSONToZip = async (obj: object, filename: string) => {
 			const zip = new JSZip();
 			const jsonString = JSON.stringify(obj, null, 2);
 			zip.file(`${filename}.json`, jsonString);
@@ -59,14 +54,14 @@
 			const a = document.createElement('a');
 			a.href = url;
 			a.download = `${filename}.zip`;
-			a.innerHTML = `${data_type} ${fileSize} ${obj.length}`;
+			a.textContent = `.zip`;
 			a.className = 'download-link';
 
-			// Append the link to the download container
-			const downloadContainer = document.querySelector('.download');
-			if (downloadContainer) {
-				downloadContainer.appendChild(a);
-			}
+			// Increment total size in bytes
+			totalSizeInBytes += content.size;
+
+			// Return the download link, size for later use in the table, and URL for plain text list
+			return { link: a, size: fileSize, url };
 		};
 
 		const organizeByDate = (games: any[]) => {
@@ -90,7 +85,7 @@
 			for (const year in organized) {
 				for (const month in organized[year]) {
 					organized[year][month].sort(
-						(a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+						(a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
 					);
 				}
 			}
@@ -98,26 +93,76 @@
 			return organized;
 		};
 
-		const downloadAll = async (organizedGames: any) => {
+		const createTable = async (organizedGames: any) => {
+			const table = document.createElement('table');
+			table.className = 'games-table';
+
+			// Create the table header
+			const header = table.createTHead();
+			const headerRow = header.insertRow();
+			['Month', 'Size', 'Games', 'Download'].forEach((text) => {
+				const th = document.createElement('th');
+				th.textContent = text;
+				headerRow.appendChild(th);
+			});
+
+			// Create the table body
+			const tbody = table.createTBody();
+
 			// Get years in descending order
 			const years = Object.keys(organizedGames).sort((a, b) => parseInt(b) - parseInt(a));
 
 			for (const year of years) {
 				const yearData = organizedGames[year];
-
 				// Get months in descending order
 				const months = Object.keys(yearData).sort((a, b) => parseInt(b) - parseInt(a));
 
 				for (const month of months) {
 					const monthData = yearData[month];
+					totalGames += monthData.length; // Calculate total number of games
+					totalFiles++; // Increment total number of files
 					const filename = `${year}-${month}`;
-					await JSONToZip(monthData, filename, `${year} - ${getMonthName(month)}`);
+
+					// Create a new row for each month
+					const row = tbody.insertRow();
+					const cellMonth = row.insertCell();
+					const cellSize = row.insertCell();
+					const cellGames = row.insertCell();
+					const cellDownload = row.insertCell();
+
+					cellMonth.textContent = `${getMonthName(parseInt(month))} ${year}`;
+					cellGames.textContent = monthData.length.toString();
+
+					// Create download link and append to cell
+					const { link, size, url } = await JSONToZip(monthData, filename);
+					cellSize.textContent = size;
+					cellDownload.appendChild(link);
+
+					// Add to plain text download list
+					plainTextDownloadList += `${filename}: ${url}\n`;
 				}
+			}
+
+			// Append the table to the container
+			const downloadContainer = document.querySelector('.download');
+			if (downloadContainer) {
+				downloadContainer.appendChild(table);
+			}
+
+			// Update the total games and total files text
+			const totalGamesText = document.querySelector('.total-games-text');
+			if (totalGamesText) {
+				totalGamesText.textContent = `${totalGames.toLocaleString()} games, played on RealGolf.Games, in JSON format. Each file contains the games for one month only; they are not cumulative.`;
+			}
+
+			const totalFilesText = document.querySelector('.total-files-text');
+			if (totalFilesText) {
+				totalFilesText.textContent = `Total: ${totalFiles} files ${formatBytes(totalSizeInBytes)} ${totalGames.toLocaleString()} Games`;
 			}
 		};
 
 		const organizedGames = organizeByDate(data.games);
-		downloadAll(organizedGames);
+		createTable(organizedGames);
 	});
 </script>
 
@@ -134,29 +179,67 @@
 	>. Use them for research, commercial purposes, publications, anything you like. You can download,
 	modify, and redistribute them, without asking for permission.
 </p>
+
+<p class="total-games-text">
+	<!-- This text will be updated dynamically -->
+</p>
+
 <div class="download">
-	<!-- The download links will be appended here -->
+	<!-- The download table will be appended here -->
 </div>
 
+<b class="total-files-text">
+	<!-- This text will be updated dynamically to show total files, size, and games -->
+</b>
+
 <style lang="scss">
-	.download {
+	:global(.download) {
 		margin-top: 2rem;
 		display: flex;
 		flex-direction: column;
 
-		.download-link {
-			display: block;
-			margin-top: 10px;
-			padding: 10px;
-			background-color: #007bff;
-			color: white;
-			text-decoration: none;
-			border-radius: 4px;
-			text-align: center;
+		.games-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-top: 1rem;
 
-			&:hover {
-				background-color: #0056b3;
+			th,
+			td {
+				border: 1px solid #ddd;
+				text-align: left;
+			}
+
+			th {
+				background-color: #f2f2f2;
+			}
+
+			tr {
+				text-align: left;
+			}
+
+			td {
+				padding: 10px;
+			}
+
+			.download-link {
+				display: block;
+				padding: 5px 10px;
+				background-color: #007bff;
+				color: white;
+				text-decoration: none;
+				border-radius: 4px;
+				text-align: left;
+
+				&:hover {
+					background-color: #0056b3;
+				}
 			}
 		}
+	}
+
+	.total-games-text,
+	.total-files-text {
+		font-size: 1.2rem;
+		margin-top: 1rem;
 	}
 </style>
